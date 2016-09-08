@@ -33,13 +33,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PageIndicator extends LinearLayout implements ViewPager.PageTransformer {
 
+    // Default colors
     @ColorRes
     public static final int DEFAULT_LIGHT_COLOR = R.color.page_indicator_light;
     @ColorRes
     public static final int DEFAULT_DARK_COLOR = R.color.page_indicator_dark;
 
+    //Debug TAG
     private static final String TAG = "CgPageIndicator";
 
+
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                                            Properties
+    //
+    // #############################################################################################
+    // #############################################################################################
     private ViewPager viewPager;
     private ColorProvider colorProvider;
     private IconProvider iconProvider;
@@ -48,6 +58,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private AtomicBoolean isTransformer = new AtomicBoolean(false);
     private ViewPager.PageTransformer transformer;
     private ViewPager.OnPageChangeListener onPageChangeListener;
+
+
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                               Inherited LinearLayout Constructors
+    //
+    // #############################################################################################
+    // #############################################################################################
 
     public PageIndicator(Context context) {
         super(context);
@@ -65,6 +84,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     public PageIndicator(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
+
+
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                                          Setup methods
+    //
+    // #############################################################################################
+    // #############################################################################################
 
     public void setupWithViewPager(@NonNull ViewPager pager, @Nullable ColorProvider cProvider, @Nullable IconProvider iProvider) {
         this.viewPager = pager;
@@ -86,10 +114,9 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
     }
 
-    private ColorProvider getDefaultColorProvider() {
-        return Theme.LIGHT;
-    }
-
+    /**
+     * Initializes the child views using the count of the viewpagers adapter content count,
+     */
     private void setup() {
         removeAllViewsInLayout();
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -138,36 +165,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         this.transformer = new IndicatorViewTransformer();
     }
 
-    public enum Theme implements ColorProvider {
-        DARK, LIGHT;
-
-        @Override
-        public int getActiveColor(int position) {
-            if (this == DARK) {
-                return DEFAULT_LIGHT_COLOR;
-            } else {
-                return DEFAULT_DARK_COLOR;
-            }
-        }
-
-        @Override
-        public int getInactiveColor(int position) {
-            if (this == DARK) {
-                return DEFAULT_DARK_COLOR;
-            } else {
-                return DEFAULT_LIGHT_COLOR;
-            }
-        }
-
-    }
-
-    @Override
-    public void transformPage(View page, float position) {
-        if (transformer != null) {
-            transformer.transformPage(page, position);
-        }
-    }
-
     private void setupIndicator(ViewGroup indicator, int color, Integer icon, Integer iconSize) {
         boolean dotVisible = icon == null;
         boolean iconVisible = !dotVisible;
@@ -195,6 +192,26 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             iconView.setVisibility(INVISIBLE);
         }
         iconView.setLayoutParams(iconParams);
+    }
+
+
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                                      Helper methods
+    //
+    // #############################################################################################
+    // #############################################################################################
+
+    private ColorProvider getDefaultColorProvider() {
+        return Theme.LIGHT;
+    }
+
+    @Override
+    public void transformPage(View page, float position) {
+        if (transformer != null) {
+            transformer.transformPage(page, position);
+        }
     }
 
     @Override
@@ -240,19 +257,43 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         };
     }
 
+
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                                  Encapsulated inner classes
+    //
+    // #############################################################################################
+    // #############################################################################################
+
+
+    /**
+     * TODO: write documentation
+     */
     private class IndicatorViewTransformer implements ViewPager.PageTransformer {
 
         @Override
+        /**
+         * Transformer main method
+         */
         public void transformPage(View page, float position) {
 
+            // Set the transformer flag
             isTransformer.compareAndSet(false, true);
+
+            // Get the pageIndex of the current fragment
             Object tag = page.getTag(R.id.POSITION);
             if (tag instanceof Integer) {
                 int pageIndex = (int) tag;
+
+                // Get the indicator view to manipulate or return if the current page is a fake
+                // page for circular paging
                 ViewGroup indicator = getVirtualIndicator(pageIndex);
                 if (indicator == null) {
                     return;
                 }
+
+                // Translate the indicator index if there are fake pages
                 int indicatorIndex;
                 if (circularAdapter != null) {
                     if (pageIndex > 0 && pageIndex < circularAdapter.getCount() - 1) {
@@ -281,6 +322,8 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 Log.e(TAG, "Not able to retrieve page index from Pager View");
             }
         }
+
+        // ################################# Helper methods ########################################
 
         private int getColor(final float absPosition, final int index) {
             int color;
@@ -378,9 +421,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
     }
 
+    /**
+     * TODO: write documentation
+     */
     private class IndicatorPageChangeListener implements ViewPager.OnPageChangeListener {
 
         @Override
+        /**
+         * Not used
+         */
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         }
 
@@ -404,7 +453,32 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
 
         @Override
+        /**
+         * Not used
+         */
         public void onPageScrollStateChanged(int state) {
+        }
+    }
+
+    public enum Theme implements ColorProvider {
+        DARK, LIGHT;
+
+        @Override
+        public int getActiveColor(int position) {
+            if (this == DARK) {
+                return DEFAULT_LIGHT_COLOR;
+            } else {
+                return DEFAULT_DARK_COLOR;
+            }
+        }
+
+        @Override
+        public int getInactiveColor(int position) {
+            if (this == DARK) {
+                return DEFAULT_DARK_COLOR;
+            } else {
+                return DEFAULT_LIGHT_COLOR;
+            }
         }
     }
 }

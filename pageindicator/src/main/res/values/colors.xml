@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="page_indicator_dark">#FF5C5C5C</color>
+    <color name="page_indicator_light">#FFDCDCDC</color>
+</resources>

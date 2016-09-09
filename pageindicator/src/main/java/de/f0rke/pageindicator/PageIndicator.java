@@ -202,6 +202,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         this.transformer = new IndicatorViewTransformer();
     }
 
+    /**
+     * Apply the final values to the single indicator
+     *
+     * @param indicator The indicator to apply the parameters to
+     * @param color     The color to set
+     * @param icon      The icon to show
+     * @param iconSize  The size of the icon to show
+     */
     private void setupIndicator(ViewGroup indicator, int color, Integer icon, Integer iconSize) {
         boolean dotVisible = icon == null;
         boolean iconVisible = !dotVisible;
@@ -240,6 +248,11 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     // #############################################################################################
     // #############################################################################################
 
+    /**
+     * Provide a default colorProvider
+     *
+     * @return A Provider with the light default {@link Theme}
+     */
     private ColorProvider getDefaultColorProvider() {
         return Theme.LIGHT;
     }
@@ -517,7 +530,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private class IndicatorPageChangeListener implements ViewPager.OnPageChangeListener {
 
         /**
-         * Not used
+         * Not used by this implementation.
          */
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -543,7 +556,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
 
         /**
-         * Not used
+         * Not used by this implementation.
          */
         @Override
         public void onPageScrollStateChanged(int state) {
@@ -551,7 +564,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
 
     /**
-     * TODO: write documentation
+     * This enum implements two simple grayscale ColorProviders
      */
     public enum Theme implements ColorProvider {
         DARK, LIGHT;

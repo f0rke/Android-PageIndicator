@@ -6,10 +6,11 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
@@ -209,7 +210,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
      * @param icon      The icon to show
      * @param iconSize  The size of the icon to show
      */
-    private void setupIndicator(ViewGroup indicator, int color, Integer icon, Integer iconSize) {
+    private void setupIndicator(ViewGroup indicator, @ColorInt int color, @DrawableRes Integer icon, Integer iconSize) {
         boolean dotVisible = icon == null;
         boolean iconVisible = !dotVisible;
 
@@ -397,6 +398,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
          * @param index       The index of the indicator view within the PageIndicator
          * @return The calculated color considering colorProvider and scrollPosition
          */
+        @ColorInt
         private int getColor(final float absPosition, final int index) {
             int color;
             if (absPosition == 0f) {
@@ -548,7 +550,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                             128);
 
                     CardView dot = (CardView) indicator.findViewById(R.id.indicator_dot_8dp);
-                    dot.setCardBackgroundColor(ContextCompat.getColor(getContext(), active ? colorProvider.getActiveColor(i) : colorProvider.getInactiveColor(i)));
+                    dot.setCardBackgroundColor(active ? colorProvider.getActiveColor(i) : colorProvider.getInactiveColor(i));
                 }
                 requestLayout();
             }
@@ -571,18 +573,18 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         @Override
         public int getActiveColor(int position) {
             if (this == DARK) {
-                return DEFAULT_LIGHT_COLOR;
+                return 0xFFDCDCDC;
             } else {
-                return DEFAULT_DARK_COLOR;
+                return 0xFF5C5C5C;
             }
         }
 
         @Override
         public int getInactiveColor(int position) {
             if (this == DARK) {
-                return DEFAULT_DARK_COLOR;
+                return 0xFF5C5C5C;
             } else {
-                return DEFAULT_LIGHT_COLOR;
+                return 0xFFDCDCDC;
             }
         }
     }

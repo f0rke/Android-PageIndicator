@@ -1,6 +1,6 @@
 package de.f0rke.pageindicator;
 
-import android.support.annotation.ColorRes;
+import android.support.annotation.ColorInt;
 
 /**
  * Created by moritzkochig on 07.09.16.
@@ -15,7 +15,7 @@ public interface ColorProvider {
      * @param position The index of the page, which the relevant indicator represents
      * @return Color to use for active state
      */
-    @ColorRes
+    @ColorInt
     int getActiveColor(int position);
 
     /**
@@ -24,6 +24,6 @@ public interface ColorProvider {
      * @param position The index of the page, which is represented by the relevant indicator
      * @return Color to use for inactive state
      */
-    @ColorRes
+    @ColorInt
     int getInactiveColor(int position);
 }

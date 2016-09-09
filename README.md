@@ -83,6 +83,9 @@ Add the bintray repository to the project's root .gradle file:
 ```gradle
 allprojects {
     repositories {
+        .
+        .
+        .
         maven { url "https://dl.bintray.com/f0rke/pageindicator" }
     }
 }
@@ -94,7 +97,7 @@ dependencies {
   .
   .
   .
-  compile 'de.f0rke.pageindicator:pageindicator:1.0.1' 
+  compile 'de.f0rke.pageindicator:pageindicator:1.0.2' 
 }
 ``` 
 

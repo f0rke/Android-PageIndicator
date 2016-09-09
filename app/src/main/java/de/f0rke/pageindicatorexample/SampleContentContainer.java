@@ -8,10 +8,10 @@ import android.os.Parcelable;
  *
  * @author f0rke
  */
-public class ContentContainer implements Parcelable {
+public class SampleContentContainer implements Parcelable {
     private final String text;
 
-    ContentContainer(String text) {
+    SampleContentContainer(String text) {
         this.text = text;
     }
 
@@ -25,19 +25,19 @@ public class ContentContainer implements Parcelable {
         dest.writeString(this.text);
     }
 
-    protected ContentContainer(Parcel in) {
+    protected SampleContentContainer(Parcel in) {
         this.text = in.readString();
     }
 
-    public static final Creator<ContentContainer> CREATOR = new Creator<ContentContainer>() {
+    public static final Creator<SampleContentContainer> CREATOR = new Creator<SampleContentContainer>() {
         @Override
-        public ContentContainer createFromParcel(Parcel source) {
-            return new ContentContainer(source);
+        public SampleContentContainer createFromParcel(Parcel source) {
+            return new SampleContentContainer(source);
         }
 
         @Override
-        public ContentContainer[] newArray(int size) {
-            return new ContentContainer[size];
+        public SampleContentContainer[] newArray(int size) {
+            return new SampleContentContainer[size];
         }
     };
 

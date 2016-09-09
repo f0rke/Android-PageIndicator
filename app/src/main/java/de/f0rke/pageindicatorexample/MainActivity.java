@@ -51,10 +51,10 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         ViewPager pager = (ViewPager) findViewById(R.id.pager);
-        List<ContentContainer> contentList = new ArrayList<ContentContainer>() {{
-            add(new ContentContainer("Page One"));
-            add(new ContentContainer("Page Two"));
-            add(new ContentContainer("Page Three"));
+        List<SampleContentContainer> contentList = new ArrayList<SampleContentContainer>() {{
+            add(new SampleContentContainer("Page One"));
+            add(new SampleContentContainer("Page Two"));
+            add(new SampleContentContainer("Page Three"));
         }};
         SamplePageAdapter adapter = new SamplePageAdapter(getSupportFragmentManager(), contentList);
         PageIndicator indicator = (PageIndicator) findViewById(R.id.indicator);

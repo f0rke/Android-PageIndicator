@@ -18,10 +18,10 @@ public class SamplePageFragment extends Fragment {
 
     private static final String CONTENT_KEY = "content";
     private static final String PAGE_INDEX_KEY = "pageIndex";
-    private ContentContainer content;
+    private SampleContentContainer content;
     private int pageIndex;
 
-    public static SamplePageFragment newInstance(ContentContainer content, int pageIndex) {
+    public static SamplePageFragment newInstance(SampleContentContainer content, int pageIndex) {
 
         Bundle args = new Bundle();
         args.putParcelable(CONTENT_KEY, content);

@@ -12,13 +12,13 @@ import de.f0rke.pageindicator.CircularPagerAdapter;
  *
  * @author f0rke
  */
-public class SamplePageAdapter extends CircularPagerAdapter<ContentContainer> {
-    public SamplePageAdapter(FragmentManager fragmentManager, List<ContentContainer> contentContainers) {
-        super(fragmentManager, contentContainers);
+public class SamplePageAdapter extends CircularPagerAdapter<SampleContentContainer> {
+    public SamplePageAdapter(FragmentManager fragmentManager, List<SampleContentContainer> sampleContentContainers) {
+        super(fragmentManager, sampleContentContainers);
     }
 
     @Override
-    protected Fragment getFragmentForItem(ContentContainer contentContainer, int index) {
-        return SamplePageFragment.newInstance(contentContainer, index);
+    protected Fragment getFragmentForItem(SampleContentContainer sampleContentContainer, int index) {
+        return SamplePageFragment.newInstance(sampleContentContainer, index);
     }
 }

@@ -6,8 +6,7 @@ import android.support.annotation.Nullable;
 /**
  * Created by moritzkochig on 07.09.16.
  *
- * @author Moritz Köchig
- *         © mobile concepts GmbH 2016
+ * @author f0rke
  */
 public interface IconProvider {
 

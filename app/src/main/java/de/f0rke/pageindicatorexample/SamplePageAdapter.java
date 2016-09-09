@@ -10,8 +10,7 @@ import de.f0rke.pageindicator.CircularPagerAdapter;
 /**
  * Created by moritzkochig on 07.09.16.
  *
- * @author Moritz Köchig
- *         © mobile concepts GmbH 2016
+ * @author f0rke
  */
 public class SamplePageAdapter extends CircularPagerAdapter<ContentContainer> {
     public SamplePageAdapter(FragmentManager fragmentManager, List<ContentContainer> contentContainers) {

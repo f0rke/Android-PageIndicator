@@ -5,8 +5,7 @@ import android.support.v4.view.ViewPager;
 /**
  * Created by moritzkochig on 07.09.16.
  *
- * @author Moritz Köchig
- *         © mobile concepts GmbH 2016
+ * @author f0rke
  */
 class CircularPagerHandler implements ViewPager.OnPageChangeListener {
     public static final int SET_ITEM_DELAY = 300;

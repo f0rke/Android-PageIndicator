@@ -27,8 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by moritzkochig on 11.08.16.
  *
- * @author Moritz Köchig
- *         © mobile concepts GmbH 2016
+ * @author f0rke
  */
 
 public class PageIndicator extends LinearLayout implements ViewPager.PageTransformer {

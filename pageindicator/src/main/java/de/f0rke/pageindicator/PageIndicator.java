@@ -89,11 +89,20 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     // #############################################################################################
     // #############################################################################################
     //
-    //                                          Setup methods
+    //                                          Setup-methods
     //
     // #############################################################################################
     // #############################################################################################
 
+    /**
+     * Setup the page indicator with a standard FragmentViewPager
+     *
+     * @param pager     The corresponding ViewPager
+     * @param cProvider The color Provider for the indicator views or null if you want to use the
+     *                  default theme of light and dark gray
+     * @param iProvider The icon Provider for the indicator views or null if you don't want to
+     *                  use icons
+     */
     public void setupWithViewPager(@NonNull ViewPager pager, @Nullable ColorProvider cProvider, @Nullable IconProvider iProvider) {
         this.viewPager = pager;
         setColorProviderForTheme(cProvider);
@@ -101,11 +110,26 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         setup();
     }
 
+    /**
+     * Setup the page indicator with a FragmentViewPager that will loop endlessly
+     *
+     * @param pager     The corresponding ViewPager
+     * @param cProvider The color Provider for the indicator views or null if you want to use the
+     *                  default theme of light and dark gray
+     * @param iProvider The icon Provider for the indicator views or null if you don't want to
+     *                  use icons
+     * @param adapter   The circular fragment adapter to provide circular functionality
+     */
     public void setupWithCircularViewPager(@NonNull ViewPager pager, @Nullable ColorProvider cProvider, @Nullable IconProvider iProvider, CircularPagerAdapter adapter) {
         this.circularAdapter = adapter;
         setupWithViewPager(pager, cProvider, iProvider);
     }
 
+    /**
+     * Internal method for setting the color provider and making sure it is not null
+     *
+     * @param provider the provider to set or null for choosing default color theme
+     */
     private void setColorProviderForTheme(ColorProvider provider) {
         if (provider == null) {
             colorProvider = getDefaultColorProvider();
@@ -115,20 +139,29 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
 
     /**
-     * Initializes the child views using the count of the viewpagers adapter content count,
+     * Initializes the child views using the count of the ViewPagers adapter content count,
      */
     private void setup() {
+
+        // Remove all child views for the case the setup method gets called again for resetting the
+        // PageIndicators content
         removeAllViewsInLayout();
+
+        // Get an inflater to inflate the indicator views
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
+        // Determine how many pages need an indicator
         int itemCount = viewPager.getAdapter().getCount();
         for (int i = 0; i < itemCount; i++) {
 
-            //setup group
+            // Setup indicator viewgroup (icon and dot)
             ViewGroup indicator = (ViewGroup) inflater.inflate(R.layout.single_indicator, this, false);
+
+            // Link indicator with page index
             indicator.setTag(R.id.POSITION, i);
             final int finalI = i;
 
+            // Register all child views for onClick events
             for (int j = 0; j < indicator.getChildCount(); j++) {
                 indicator.getChildAt(j).setOnClickListener(new OnClickListener() {
                     @Override
@@ -138,23 +171,24 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 });
             }
 
+            // Determine if the current indicator is the active one and set it up correspondingly
             boolean active = (this.circularAdapter != null ? i == 1 : i == 0);
             if (this.circularAdapter == null || (i > 0 && i < this.circularAdapter.getCount() - 1)) {
                 int color = active ? colorProvider.getActiveColor(i) : colorProvider.getInactiveColor(i);
                 Integer icon = active ? iconProvider.getActiveIcon(i) : iconProvider.getInactiveIcon(i);
-
                 setupIndicator(indicator, color, icon, iconProvider.getIconSize());
             } else {
+                //If this is a circular pager indicator, then hide first and last view
                 indicator.setVisibility(INVISIBLE);
             }
 
-            //finish
+            // Finished setting up the indicator view, now adding
             this.addView(indicator, i);
         }
         this.requestLayout();
 
+        // Add page listeners for each case of not circular and circular
         onPageChangeListener = new IndicatorPageChangeListener();
-
         if (circularAdapter != null) {
             CircularPagerHandler handler = new CircularPagerHandler(viewPager);
             handler.setOnPageChangeListener(onPageChangeListener);
@@ -162,6 +196,9 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         } else {
             viewPager.addOnPageChangeListener(onPageChangeListener);
         }
+
+        // Preparing the page transformer for the case this PageIndicator is added to the pager
+        // as transformer later
         this.transformer = new IndicatorViewTransformer();
     }
 
@@ -208,12 +245,19 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
 
     @Override
+    /**
+     * Only forwards the parameters to the inner transformer
+     */
     public void transformPage(View page, float position) {
         if (transformer != null) {
             transformer.transformPage(page, position);
         }
     }
 
+    /**
+     * Overriding the onMeasure method to make sure the page indicator stays always at the same
+     * height although it's measured height would differ while animating page transformations
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -228,11 +272,21 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
     }
 
+    /**
+     * Simple helper function
+     *
+     * @return the Devices display density
+     */
     private double getDensity() {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         return (double) metrics.density;
     }
 
+    /**
+     * Provides a default icon Provider
+     *
+     * @return A provider which provides null values
+     */
     private IconProvider getDefaultIconProvider() {
         return new IconProvider() {
             @Override
@@ -268,13 +322,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
 
 
     /**
-     * TODO: write documentation
+     * This Transformer animates indicator color, cross fading dot and icon within indicator view,
+     * shrinking and inflating icon size and supports circular swiping
      */
     private class IndicatorViewTransformer implements ViewPager.PageTransformer {
 
         @Override
         /**
-         * Transformer main method
+         * Transformers main method
          */
         public void transformPage(View page, float position) {
 
@@ -304,18 +359,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 } else {
                     indicatorIndex = pageIndex;
                 }
+
+                // Get calculated new values and apply them to indicator view
                 float virtualPosition = getVirtualPosition(position);
-
                 float absPosition = Math.abs(virtualPosition);
-
                 Integer icon = absPosition <= 0.5f ? iconProvider.getActiveIcon(indicatorIndex) : iconProvider.getInactiveIcon(indicatorIndex);
-
                 float alpha = getAlpha(absPosition, indicatorIndex);
                 indicator.setAlpha(alpha);
                 int iconSize = getIconSize(alpha, absPosition, indicatorIndex);
-
                 int color = getColor(absPosition, indicatorIndex);
-
                 setupIndicator(indicator, color, icon, iconSize);
 
             } else {
@@ -325,6 +377,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
 
         // ################################# Helper methods ########################################
 
+        /**
+         * Calculates the color for the given position and page indicator index
+         *
+         * @param absPosition The absolute value of the relative position of the page within
+         *                    the ViewPager
+         * @param index       The index of the indicator view within the PageIndicator
+         * @return The calculated color considering colorProvider and scrollPosition
+         */
         private int getColor(final float absPosition, final int index) {
             int color;
             if (absPosition == 0f) {
@@ -337,6 +397,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             return color;
         }
 
+        /**
+         * Calculates the icon size for the absolute position and indicator index considering
+         * the alpha value of the view
+         *
+         * @param alpha       alpha value of the indicator
+         * @param absPosition absolute value of the relative position in ViewPager
+         * @param index       indicator view index
+         * @return The calculated IconSize
+         */
         private int getIconSize(final float alpha, final float absPosition, int index) {
             int expandedIconSize = (int) ((iconProvider.getIconSize() != null ? iconProvider.getIconSize() : dotSize) * getDensity());
             int iconSize;
@@ -367,6 +436,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             return iconSize;
         }
 
+        /**
+         * Calculates the alpha value which should be applied to the indicator view at the given
+         * index with the relative position
+         *
+         * @param absPosition Absolute value of the relative position in ViewPager
+         * @param index       Indicator view index
+         * @return The calculated alpha value
+         */
         private float getAlpha(final float absPosition, final int index) {
 
             boolean hasIcon = iconProvider.getActiveIcon(index) != null || iconProvider.getInactiveIcon(index) != null;
@@ -390,6 +467,12 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             return alpha;
         }
 
+        /**
+         * Gets the visible (to manipulate) Indicator view for the given index
+         *
+         * @param index page index
+         * @return The corresponding indicator or null if fake indicator for circular pager
+         */
         private ViewGroup getVirtualIndicator(int index) {
             if (circularAdapter != null) {
                 //Don't animate last and first indicator if circular viewpager
@@ -401,6 +484,13 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             return (ViewGroup) getChildAt(index);
         }
 
+        /**
+         * Get the virtual to calculate the other values with. This is needed if the PageIndicator
+         * is indicator for a circular pager to avoid animating fake pages.
+         *
+         * @param actualPosition The actual position of the page
+         * @return The virtual position of the page to use for calculating the animating values
+         */
         private float getVirtualPosition(float actualPosition) {
             float virtualPosition;
 
@@ -426,10 +516,10 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
      */
     private class IndicatorPageChangeListener implements ViewPager.OnPageChangeListener {
 
-        @Override
         /**
          * Not used
          */
+        @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         }
 
@@ -452,14 +542,17 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         }
 
-        @Override
         /**
          * Not used
          */
+        @Override
         public void onPageScrollStateChanged(int state) {
         }
     }
 
+    /**
+     * TODO: write documentation
+     */
     public enum Theme implements ColorProvider {
         DARK, LIGHT;
 

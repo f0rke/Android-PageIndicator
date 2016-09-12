@@ -77,19 +77,7 @@ public class SamplePageAdapter extends CircularPagerAdapter<SampleContentContain
 This Project was created becaus in many App I was contributing or coding myself, an independent customizable PageIndicator was missing. I wanted a library that can be used across multiple projects and did not find a suitable existing one. So as a developer I started to implement my own one which by time became a little more complex than expected. So here we are.
 
 ## Installation
-The library is available by import via maven.
-
-Add the bintray repository to the project's root .gradle file:
-```gradle
-allprojects {
-    repositories {
-        .
-        .
-        .
-        maven { url "https://dl.bintray.com/f0rke/pageindicator" }
-    }
-}
-```
+The library is available by import via JCenter.
 
 Add this to the dependencies of the `build.gradle` file of the module you want to use the `PageIndicator`.
 ```gradle

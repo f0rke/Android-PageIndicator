@@ -391,8 +391,16 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         this.currentAutoPlayState.set(AutoPlayState.INITIALIZED);
     }
 
-    public void setAutoPlayDebugMode(AutoPlayLogLevel level) {
+    public void setAutoPlayLogLevel(AutoPlayLogLevel level) {
         this.autoPlayDebugMode.set(level);
+    }
+
+    public AutoPlayLogLevel getAutoPlayDebugMode() {
+        return this.autoPlayDebugMode.get();
+    }
+
+    public AutoPlayState getCurrentAutoPlayState() {
+        return currentAutoPlayState.get();
     }
 
     public void startAutoPlay() {

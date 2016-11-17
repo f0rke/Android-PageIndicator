@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity
         pager.setAdapter(adapter);
         pager.setPageTransformer(false, indicator);
         indicator.setupWithCircularViewPager(pager, PageIndicator.Theme.LIGHT, null, adapter);
-        indicator.setAutoPlayDebugMode(PageIndicator.AutoPlayLogLevel.LOW);
+        indicator.setAutoPlayLogLevel(PageIndicator.AutoPlayLogLevel.LOW);
         indicator.initializeAutoPlay(3000, true);
         indicator.startAutoPlay();
     }

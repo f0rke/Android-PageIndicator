@@ -5,6 +5,8 @@ def libVersionMajor = 1
 def libVersionMinor = 1
 def libBuildCount = 3
 
+def libVersionName = "${libVersion}.${libVersionMajor}.${libVersionMinor}"
+
 ext {
     bintrayRepo = 'pageindicator'
     bintrayName = 'pageindicator'
@@ -18,7 +20,7 @@ ext {
     siteUrl = 'https://github.com/f0rke/Android-PageIndicator'
     gitUrl = 'https://github.com/f0rke/Android-PageIndicator.git'
 
-    libraryVersion = libVersion
+    libraryVersion = libVersionName
 
     developerId = 'f0rke'
     developerName = 'Moritz Koechig'
@@ -41,7 +43,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode libBuildCount
-        versionName "${libVersion}.${libVersionMajor}.${libVersionMinor}"
+        versionName libVersionName
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 

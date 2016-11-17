@@ -1,0 +1,4 @@
+./gradlew install
+ -> BUILD SUCCESSFUL
+./gradlew bintrayUpload
+ -> BUILD SUCCESSFUL

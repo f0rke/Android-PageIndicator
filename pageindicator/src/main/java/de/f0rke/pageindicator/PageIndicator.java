@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
@@ -23,7 +25,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static android.support.v4.view.ViewPager.SCROLL_STATE_DRAGGING;
+import static android.support.v4.view.ViewPager.SCROLL_STATE_IDLE;
+import static android.support.v4.view.ViewPager.SCROLL_STATE_SETTLING;
 
 /**
  * Created by moritzkochig on 11.08.16.
@@ -33,6 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PageIndicator extends LinearLayout implements ViewPager.PageTransformer {
 
+    //<editor-fold desc="### Constants ###">
     // Default colors
     @ColorRes
     public static final int DEFAULT_LIGHT_COLOR = R.color.page_indicator_light;
@@ -41,8 +52,10 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
 
     //Debug TAG
     private static final String TAG = "CgPageIndicator";
+    //</editor-fold>
 
 
+    //<editor-fold desc="### Properties ###">
     // #############################################################################################
     // #############################################################################################
     //
@@ -50,6 +63,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     //
     // #############################################################################################
     // #############################################################################################
+
     private ViewPager viewPager;
     private ColorProvider colorProvider;
     private IconProvider iconProvider;
@@ -58,8 +72,10 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private AtomicBoolean isTransformer = new AtomicBoolean(false);
     private ViewPager.PageTransformer transformer;
     private ViewPager.OnPageChangeListener onPageChangeListener;
+    //</editor-fold>
 
 
+    //<editor-fold desc="### Inherited LinearLayout Constructors ###">
     // #############################################################################################
     // #############################################################################################
     //
@@ -84,12 +100,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     public PageIndicator(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
+    //</editor-fold>
 
 
+    //<editor-fold desc="### Setup methods ###">
     // #############################################################################################
     // #############################################################################################
     //
-    //                                          Setup-methods
+    //                                          Setup methods
     //
     // #############################################################################################
     // #############################################################################################
@@ -105,9 +123,9 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
      */
     public void setupWithViewPager(@NonNull ViewPager pager, @Nullable ColorProvider cProvider, @Nullable IconProvider iProvider) {
         this.viewPager = pager;
-        setColorProviderForTheme(cProvider);
+        this.setColorProviderForTheme(cProvider);
         this.iconProvider = iProvider != null ? iProvider : getDefaultIconProvider();
-        setup();
+        this.setup();
     }
 
     /**
@@ -122,7 +140,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
      */
     public void setupWithCircularViewPager(@NonNull ViewPager pager, @Nullable ColorProvider cProvider, @Nullable IconProvider iProvider, CircularPagerAdapter adapter) {
         this.circularAdapter = adapter;
-        setupWithViewPager(pager, cProvider, iProvider);
+        this.setupWithViewPager(pager, cProvider, iProvider);
     }
 
     /**
@@ -238,12 +256,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
         iconView.setLayoutParams(iconParams);
     }
+    //</editor-fold>
 
 
+    //<editor-fold desc="### Proxy methods ###">
     // #############################################################################################
     // #############################################################################################
     //
-    //                                      Helper methods
+    //                                         Proxy methods
     //
     // #############################################################################################
     // #############################################################################################
@@ -323,8 +343,153 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         };
     }
+    //</editor-fold>
 
 
+    //<editor-fold desc="### Auto Play ###">
+    // #############################################################################################
+    // #############################################################################################
+    //
+    //                                          Auto Play
+    //
+    // #############################################################################################
+    // #############################################################################################
+    private Timer timer = new Timer();
+    private AutoPlayTimerTask task = null;
+    private long autoScrollInterval = 0;
+    private boolean directionForward = true;
+    private Handler autoPlayHandler = null;
+    private final AtomicReference<AutoPlayState> currentAutoPlayState = new AtomicReference<>(AutoPlayState.NOT_INITIALIZED);
+    private final AtomicReference<AutoPlayLogLevel> autoPlayDebugMode = new AtomicReference<>(AutoPlayLogLevel.NONE);
+
+    /* TODO:
+     * Detect view moving to background to not swipe then. Also don't operate on dead Views if
+     * the developer created memory leaks when not properly reusing or destroying views during
+     * view state changes
+     */
+    private final AtomicBoolean keepPlayingInBackground = new AtomicBoolean(false);
+
+    public enum AutoPlayState {
+        NOT_INITIALIZED, INITIALIZED, PLAYING, PAUSED, STOPPED
+    }
+
+    public enum AutoPlayLogLevel {
+        NONE(0), LOW(1), HIGH(2);
+
+        final int value;
+
+        AutoPlayLogLevel(int i) {
+            this.value = i;
+        }
+    }
+
+    public void initializeAutoPlay(long interval, boolean directionForward) {
+        this.autoPlayHandler = new Handler(Looper.getMainLooper());
+        this.timer = new Timer();
+        this.autoScrollInterval = interval;
+        this.directionForward = directionForward;
+        this.currentAutoPlayState.set(AutoPlayState.INITIALIZED);
+    }
+
+    public void setAutoPlayDebugMode(AutoPlayLogLevel level) {
+        this.autoPlayDebugMode.set(level);
+    }
+
+    public void startAutoPlay() {
+        if (!new ArrayList<AutoPlayState>() {{
+            add(AutoPlayState.NOT_INITIALIZED);
+            add(AutoPlayState.PLAYING);
+        }}.contains(currentAutoPlayState.get())) {
+            AutoPlayLogLevel logLevel = this.autoPlayDebugMode.get();
+            AutoPlayState state = this.currentAutoPlayState.get();
+            if (state == AutoPlayState.PAUSED) {
+                if (logLevel == AutoPlayLogLevel.HIGH) {
+                    Log.d(TAG, "Resuming AutoPlay");
+                }
+            } else {
+                if (logLevel.value > AutoPlayLogLevel.NONE.value) {
+                    Log.d(TAG, "Starting AutoPlay");
+                }
+            }
+            if (task == null) {
+                task = new AutoPlayTimerTask();
+            }
+            timer.schedule(task, autoScrollInterval, autoScrollInterval);
+            this.currentAutoPlayState.set(AutoPlayState.PLAYING);
+        }
+    }
+
+    public void stopAutoPlay() {
+        stopAutoPlay(false);
+    }
+
+    private void stopAutoPlay(boolean automatic) {
+        if (task != null) {
+            task.cancel();
+            task = null;
+        }
+        AutoPlayLogLevel logLevel = this.autoPlayDebugMode.get();
+        if (automatic) {
+            if (logLevel == AutoPlayLogLevel.HIGH) {
+                Log.d(TAG, "Pausing AutoPlay due interaction");
+            }
+            this.currentAutoPlayState.set(AutoPlayState.PAUSED);
+        } else {
+            if (logLevel.value > AutoPlayLogLevel.NONE.value) {
+                Log.d(TAG, "Stopping AutoPlay");
+            }
+            this.currentAutoPlayState.set(AutoPlayState.STOPPED);
+        }
+    }
+
+    public void disableAutoPlay() {
+        timer.cancel();
+        autoScrollInterval = 0;
+        directionForward = true;
+        task = null;
+        timer = new Timer();
+        autoPlayHandler = null;
+
+        if (this.autoPlayDebugMode.get().value > AutoPlayLogLevel.NONE.value) {
+            Log.d(TAG, "Disabled AutoPlay. To restart it needs to be re-initialized.");
+        }
+        this.currentAutoPlayState.set(AutoPlayState.NOT_INITIALIZED);
+    }
+
+    private class AutoPlayTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            AutoPlayLogLevel logLevel = autoPlayDebugMode.get();
+            if (autoPlayHandler != null && viewPager != null) {
+                autoPlayHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (viewPager.getVisibility() == View.VISIBLE) {
+                            viewPager.setCurrentItem(viewPager.getCurrentItem() + (directionForward ? 1 : -1), true);
+                        }
+                    }
+                });
+                if (logLevel == AutoPlayLogLevel.HIGH) {
+                    Log.d(TAG, "AutoPlay performed");
+                }
+            } else {
+                if (viewPager == null) {
+                    if (logLevel.value > AutoPlayLogLevel.NONE.value) {
+                        Log.e(TAG, "Trying to perform AutoPlay but viewPager instance has gone. -> disabling AutoPlay");
+                    }
+                } else {
+                    if (logLevel.value > AutoPlayLogLevel.NONE.value) {
+                        Log.e(TAG, "Trying to perform AutoPlay thus Handler instance is null. -> disabling AutoPlay");
+                    }
+                }
+                disableAutoPlay();
+            }
+        }
+    }
+    //</editor-fold>
+
+
+    //<editor-fold desc="### Encapsulated inner classes ###">
     // #############################################################################################
     // #############################################################################################
     //
@@ -332,7 +497,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     //
     // #############################################################################################
     // #############################################################################################
-
 
     /**
      * This Transformer animates indicator color, cross fading dot and icon within indicator view,
@@ -561,6 +725,23 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
          */
         @Override
         public void onPageScrollStateChanged(int state) {
+            switch (state) {
+                case SCROLL_STATE_IDLE:
+                    if (currentAutoPlayState.get() == AutoPlayState.PAUSED) {
+                        startAutoPlay();
+                    }
+                    break;
+                case SCROLL_STATE_DRAGGING:
+                case SCROLL_STATE_SETTLING:
+                    if (!new ArrayList<AutoPlayState>() {{
+                        add(AutoPlayState.NOT_INITIALIZED);
+                        add(AutoPlayState.PAUSED);
+                        add(AutoPlayState.STOPPED);
+                    }}.contains(currentAutoPlayState.get())) {
+                        stopAutoPlay(true);
+                    }
+                    break;
+            }
         }
     }
 
@@ -588,6 +769,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         }
     }
+    //</editor-fold>
 }
 
 

@@ -1,6 +1,9 @@
 apply plugin: 'com.android.library'
 
-def libVersion = "1.0.2"
+def libVersion = 1
+def libVersionMajor = 1
+def libVersionMinor = 1
+def libBuildCount = 3
 
 ext {
     bintrayRepo = 'pageindicator'
@@ -32,13 +35,13 @@ buildscript {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.3"
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 1
-        versionName libVersion
+        versionCode libBuildCount
+        versionName "${libVersion}.${libVersionMajor}.${libVersionMinor}"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -58,8 +61,8 @@ dependencies {
     })
     testCompile 'junit:junit:4.12'
 
-    compile 'com.android.support:appcompat-v7:24.2.0'
-    compile 'com.android.support:cardview-v7:24.2.0'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:cardview-v7:24.2.1'
 }
 apply plugin: 'com.github.dcendents.android-maven'
 

@@ -8,6 +8,8 @@ import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
@@ -343,6 +345,34 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         };
     }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        AutoPlaySavedState savedState = new AutoPlaySavedState(superState);
+        savedState.autoPlayDebugMode = this.getAutoPlayDebugMode();
+        savedState.currentAutoPlayState = this.getCurrentAutoPlayState();
+        savedState.directionForward = this.directionForward;
+        savedState.autoScrollInterval = this.autoScrollInterval;
+        return savedState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof AutoPlaySavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        AutoPlaySavedState savedState = (AutoPlaySavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+
+        this.autoPlayDebugMode.set(savedState.autoPlayDebugMode);
+        this.currentAutoPlayState.set(savedState.currentAutoPlayState);
+        this.directionForward = savedState.directionForward;
+        this.autoScrollInterval = savedState.autoScrollInterval;
+    }
+
     //</editor-fold>
 
 
@@ -362,6 +392,49 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private final AtomicReference<AutoPlayState> currentAutoPlayState = new AtomicReference<>(AutoPlayState.NOT_INITIALIZED);
     private final AtomicReference<AutoPlayLogLevel> autoPlayDebugMode = new AtomicReference<>(AutoPlayLogLevel.NONE);
 
+
+    static class AutoPlaySavedState extends BaseSavedState {
+        long autoScrollInterval;
+        boolean directionForward;
+        AutoPlayState currentAutoPlayState;
+        AutoPlayLogLevel autoPlayDebugMode;
+
+        AutoPlaySavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private AutoPlaySavedState(Parcel in) {
+            super(in);
+            this.autoScrollInterval = in.readLong();
+            this.directionForward = in.readByte() != 0;
+            int tmpState = in.readInt();
+            this.currentAutoPlayState = tmpState == -1 ? null : AutoPlayState.values()[tmpState];
+            int tmpMode = in.readInt();
+            this.autoPlayDebugMode = tmpMode == -1 ? null : AutoPlayLogLevel.values()[tmpMode];
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeLong(this.autoScrollInterval);
+            out.writeByte((byte) (this.directionForward ? 1 : 0));
+            out.writeInt(this.currentAutoPlayState == null ? -1 : this.currentAutoPlayState.ordinal());
+            out.writeInt(this.autoPlayDebugMode == null ? -1 : this.autoPlayDebugMode.ordinal());
+        }
+
+        //required field that makes Parcelables from a Parcel
+        public static final Parcelable.Creator<AutoPlaySavedState> CREATOR =
+                new Parcelable.Creator<AutoPlaySavedState>() {
+                    public AutoPlaySavedState createFromParcel(Parcel in) {
+                        return new AutoPlaySavedState(in);
+                    }
+
+                    public AutoPlaySavedState[] newArray(int size) {
+                        return new AutoPlaySavedState[size];
+                    }
+                };
+    }
+
     /* TODO:
      * Detect view moving to background to not swipe then. Also don't operate on dead Views if
      * the developer created memory leaks when not properly reusing or destroying views during
@@ -369,8 +442,37 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
      */
     private final AtomicBoolean keepPlayingInBackground = new AtomicBoolean(false);
 
+    /**
+     * The AutoPlay State indicates the status auf the playing process.
+     */
     public enum AutoPlayState {
-        NOT_INITIALIZED, INITIALIZED, PLAYING, PAUSED, STOPPED
+        /**
+         * This state is active, if the pager is neither initialized nor paused
+         */
+        NOT_INITIALIZED,
+
+        /**
+         * This state is active if the pager is initialized but not yet started.
+         * It is only possible to be in this state after initializing and before starting.
+         * Not after stopping.
+         */
+        INITIALIZED,
+
+        /**
+         * This state is active if the pager is running normally
+         */
+        PLAYING,
+
+        /**
+         * This state is active if the playback is interrupted internally due to user interaction
+         * with the pages.
+         */
+        PAUSED,
+
+        /**
+         * This state is active if the playback is stopped by code intentionally
+         */
+        STOPPED
     }
 
     public enum AutoPlayLogLevel {
@@ -777,7 +879,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         }
     }
-    //</editor-fold>
+//</editor-fold>
 }
 
 

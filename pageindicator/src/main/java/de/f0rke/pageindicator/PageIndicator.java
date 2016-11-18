@@ -28,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,9 +54,8 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     public static final int DEFAULT_DARK_COLOR = R.color.page_indicator_dark;
 
     //Debug TAG
-    private static final String TAG = "CgPageIndicator";
+    private static final String TAG = PageIndicator.class.getSimpleName();
     //</editor-fold>
-
 
     //<editor-fold desc="### Properties ###">
     // #############################################################################################
@@ -75,7 +75,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private ViewPager.PageTransformer transformer;
     private ViewPager.OnPageChangeListener onPageChangeListener;
     //</editor-fold>
-
 
     //<editor-fold desc="### Inherited LinearLayout Constructors ###">
     // #############################################################################################
@@ -103,7 +102,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         super(context, attrs, defStyleAttr, defStyleRes);
     }
     //</editor-fold>
-
 
     //<editor-fold desc="### Setup methods ###">
     // #############################################################################################
@@ -258,8 +256,34 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         }
         iconView.setLayoutParams(iconParams);
     }
-    //</editor-fold>
 
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        AutoPlaySavedState savedState = new AutoPlaySavedState(superState);
+        savedState.autoPlayDebugMode = this.getAutoPlayDebugMode();
+        savedState.currentAutoPlayState = this.getCurrentAutoPlayState();
+        savedState.directionForward = this.directionForward;
+        savedState.autoScrollInterval = this.autoScrollInterval;
+        return savedState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof AutoPlaySavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        AutoPlaySavedState savedState = (AutoPlaySavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+
+        this.autoPlayDebugMode.set(savedState.autoPlayDebugMode);
+        this.currentAutoPlayState.set(savedState.currentAutoPlayState);
+        this.directionForward = savedState.directionForward;
+        this.autoScrollInterval = savedState.autoScrollInterval;
+    }
+    //</editor-fold>
 
     //<editor-fold desc="### Proxy methods ###">
     // #############################################################################################
@@ -345,36 +369,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             }
         };
     }
-
-    @Override
-    protected Parcelable onSaveInstanceState() {
-        Parcelable superState = super.onSaveInstanceState();
-        AutoPlaySavedState savedState = new AutoPlaySavedState(superState);
-        savedState.autoPlayDebugMode = this.getAutoPlayDebugMode();
-        savedState.currentAutoPlayState = this.getCurrentAutoPlayState();
-        savedState.directionForward = this.directionForward;
-        savedState.autoScrollInterval = this.autoScrollInterval;
-        return savedState;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        if (!(state instanceof AutoPlaySavedState)) {
-            super.onRestoreInstanceState(state);
-            return;
-        }
-
-        AutoPlaySavedState savedState = (AutoPlaySavedState) state;
-        super.onRestoreInstanceState(savedState.getSuperState());
-
-        this.autoPlayDebugMode.set(savedState.autoPlayDebugMode);
-        this.currentAutoPlayState.set(savedState.currentAutoPlayState);
-        this.directionForward = savedState.directionForward;
-        this.autoScrollInterval = savedState.autoScrollInterval;
-    }
-
     //</editor-fold>
-
 
     //<editor-fold desc="### Auto Play ###">
     // #############################################################################################
@@ -391,56 +386,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private Handler autoPlayHandler = null;
     private final AtomicReference<AutoPlayState> currentAutoPlayState = new AtomicReference<>(AutoPlayState.NOT_INITIALIZED);
     private final AtomicReference<AutoPlayLogLevel> autoPlayDebugMode = new AtomicReference<>(AutoPlayLogLevel.NONE);
-
-
-    static class AutoPlaySavedState extends BaseSavedState {
-        long autoScrollInterval;
-        boolean directionForward;
-        AutoPlayState currentAutoPlayState;
-        AutoPlayLogLevel autoPlayDebugMode;
-
-        AutoPlaySavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        private AutoPlaySavedState(Parcel in) {
-            super(in);
-            this.autoScrollInterval = in.readLong();
-            this.directionForward = in.readByte() != 0;
-            int tmpState = in.readInt();
-            this.currentAutoPlayState = tmpState == -1 ? null : AutoPlayState.values()[tmpState];
-            int tmpMode = in.readInt();
-            this.autoPlayDebugMode = tmpMode == -1 ? null : AutoPlayLogLevel.values()[tmpMode];
-        }
-
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeLong(this.autoScrollInterval);
-            out.writeByte((byte) (this.directionForward ? 1 : 0));
-            out.writeInt(this.currentAutoPlayState == null ? -1 : this.currentAutoPlayState.ordinal());
-            out.writeInt(this.autoPlayDebugMode == null ? -1 : this.autoPlayDebugMode.ordinal());
-        }
-
-        //required field that makes Parcelables from a Parcel
-        public static final Parcelable.Creator<AutoPlaySavedState> CREATOR =
-                new Parcelable.Creator<AutoPlaySavedState>() {
-                    public AutoPlaySavedState createFromParcel(Parcel in) {
-                        return new AutoPlaySavedState(in);
-                    }
-
-                    public AutoPlaySavedState[] newArray(int size) {
-                        return new AutoPlaySavedState[size];
-                    }
-                };
-    }
-
-    /* TODO:
-     * Detect view moving to background to not swipe then. Also don't operate on dead Views if
-     * the developer created memory leaks when not properly reusing or destroying views during
-     * view state changes
-     */
-    private final AtomicBoolean keepPlayingInBackground = new AtomicBoolean(false);
 
     /**
      * The AutoPlay State indicates the status auf the playing process.
@@ -509,7 +454,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         if (!new ArrayList<AutoPlayState>() {{
             add(AutoPlayState.NOT_INITIALIZED);
             add(AutoPlayState.PLAYING);
-        }}.contains(currentAutoPlayState.get())) {
+        }}.contains(this.getCurrentAutoPlayState())) {
             AutoPlayLogLevel logLevel = this.autoPlayDebugMode.get();
             AutoPlayState state = this.currentAutoPlayState.get();
             if (state == AutoPlayState.PAUSED) {
@@ -524,8 +469,14 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
             if (task == null) {
                 task = new AutoPlayTimerTask();
             }
-            timer.schedule(task, autoScrollInterval, autoScrollInterval);
-            this.currentAutoPlayState.set(AutoPlayState.PLAYING);
+            if (autoScrollInterval > 0) {
+                timer.schedule(task, autoScrollInterval, autoScrollInterval);
+                this.currentAutoPlayState.set(AutoPlayState.PLAYING);
+            } else {
+                if (logLevel.value > AutoPlayLogLevel.NONE.value) {
+                    Log.e(TAG, "Abort " + (state == AutoPlayState.PAUSED ? "resuming" : "starting") + " AutoPlay: autoScrollInterval (" + autoScrollInterval + ") is invalid interval");
+                }
+            }
         }
     }
 
@@ -534,14 +485,25 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
 
     private void stopAutoPlay(boolean automatic) {
+        AutoPlayLogLevel logLevel = this.autoPlayDebugMode.get();
+        AutoPlayState state = this.getCurrentAutoPlayState();
+        List<AutoPlayState> array = new ArrayList<AutoPlayState>() {{
+            add(AutoPlayState.NOT_INITIALIZED);
+            add(AutoPlayState.INITIALIZED);
+        }};
+        if (array.contains(state)) {
+            if (logLevel.value >= AutoPlayLogLevel.NONE.value) {
+                Log.d(TAG, "Aborted stopping AutoPlay: unexpected state (" + state.name() + ")");
+            }
+            return;
+        }
         if (task != null) {
             task.cancel();
             task = null;
         }
-        AutoPlayLogLevel logLevel = this.autoPlayDebugMode.get();
         if (automatic) {
             if (logLevel == AutoPlayLogLevel.HIGH) {
-                Log.d(TAG, "Pausing AutoPlay due interaction");
+                Log.d(TAG, "Pausing AutoPlay due user interaction");
             }
             this.currentAutoPlayState.set(AutoPlayState.PAUSED);
         } else {
@@ -598,7 +560,6 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
     //</editor-fold>
 
-
     //<editor-fold desc="### Encapsulated inner classes ###">
     // #############################################################################################
     // #############################################################################################
@@ -650,7 +611,9 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 // Get calculated new values and apply them to indicator view
                 float virtualPosition = getVirtualPosition(position);
                 float absPosition = Math.abs(virtualPosition);
-                Integer icon = absPosition <= 0.5f ? iconProvider.getActiveIcon(indicatorIndex) : iconProvider.getInactiveIcon(indicatorIndex);
+                Integer icon = absPosition <= 0.5f
+                        ? iconProvider.getActiveIcon(indicatorIndex)
+                        : iconProvider.getInactiveIcon(indicatorIndex);
                 float alpha = getAlpha(absPosition, indicatorIndex);
                 indicator.setAlpha(alpha);
                 int iconSize = getIconSize(alpha, absPosition, indicatorIndex);
@@ -675,11 +638,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         @ColorInt
         private int getColor(final float absPosition, final int index) {
             int color;
-            if (absPosition == 0f) {
+            if (absPosition == 0.0f) {
                 color = colorProvider.getActiveColor(index);
             } else if (absPosition > 0.0f && absPosition < 1.0f) {
                 color = (Integer) new ArgbEvaluator().evaluate(absPosition, colorProvider.getActiveColor(index), colorProvider.getInactiveColor(index));
             } else {
+//                PageIndicator.this.getChildCount()
+//                if (absPosition > 1) {
+//                    Log.d(TAG, "got color at index " + index + " for absolutePosition: " + absPosition);
+//                }
                 color = colorProvider.getInactiveColor(index);
             }
             return color;
@@ -878,6 +845,48 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 return 0xFFDCDCDC;
             }
         }
+    }
+
+    static class AutoPlaySavedState extends BaseSavedState {
+        long autoScrollInterval;
+        boolean directionForward;
+        AutoPlayState currentAutoPlayState;
+        AutoPlayLogLevel autoPlayDebugMode;
+
+        AutoPlaySavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private AutoPlaySavedState(Parcel in) {
+            super(in);
+            this.autoScrollInterval = in.readLong();
+            this.directionForward = in.readByte() != 0;
+            int tmpState = in.readInt();
+            this.currentAutoPlayState = tmpState == -1 ? null : AutoPlayState.values()[tmpState];
+            int tmpMode = in.readInt();
+            this.autoPlayDebugMode = tmpMode == -1 ? null : AutoPlayLogLevel.values()[tmpMode];
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeLong(this.autoScrollInterval);
+            out.writeByte((byte) (this.directionForward ? 1 : 0));
+            out.writeInt(this.currentAutoPlayState == null ? -1 : this.currentAutoPlayState.ordinal());
+            out.writeInt(this.autoPlayDebugMode == null ? -1 : this.autoPlayDebugMode.ordinal());
+        }
+
+        //required field that makes Parcelables from a Parcel
+        public static final Parcelable.Creator<AutoPlaySavedState> CREATOR =
+                new Parcelable.Creator<AutoPlaySavedState>() {
+                    public AutoPlaySavedState createFromParcel(Parcel in) {
+                        return new AutoPlaySavedState(in);
+                    }
+
+                    public AutoPlaySavedState[] newArray(int size) {
+                        return new AutoPlaySavedState[size];
+                    }
+                };
     }
 //</editor-fold>
 }

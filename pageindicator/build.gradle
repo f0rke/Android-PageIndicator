@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 def libVersion = 1
 def libVersionMajor = 1
-def libVersionMinor = 3
-def libBuildCount = 5
+def libVersionMinor = 5
+def libBuildCount = 6
 
 def libVersionName = "${libVersion}.${libVersionMajor}.${libVersionMinor}"
 
@@ -44,10 +44,9 @@ android {
         targetSdkVersion 24
         versionCode libBuildCount
         versionName libVersionName
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
+
     buildTypes {
         release {
             minifyEnabled false

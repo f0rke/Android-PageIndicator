@@ -74,6 +74,7 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     private AtomicBoolean isTransformer = new AtomicBoolean(false);
     private ViewPager.PageTransformer transformer;
     private ViewPager.OnPageChangeListener onPageChangeListener;
+    private AtomicBoolean isSetUp = new AtomicBoolean(false);
     //</editor-fold>
 
     //<editor-fold desc="### Inherited LinearLayout Constructors ###">
@@ -218,6 +219,12 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         // Preparing the page transformer for the case this PageIndicator is added to the pager
         // as transformer later
         this.transformer = new IndicatorViewTransformer();
+
+        this.isSetUp.set(true);
+    }
+
+    public boolean isSetUp() {
+        return this.isSetUp.get();
     }
 
     /**
@@ -447,6 +454,9 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
     }
 
     public AutoPlayState getCurrentAutoPlayState() {
+        if (!this.isSetUp.get()) {
+            currentAutoPlayState.set(AutoPlayState.NOT_INITIALIZED);
+        }
         return currentAutoPlayState.get();
     }
 

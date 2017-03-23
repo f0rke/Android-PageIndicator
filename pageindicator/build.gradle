@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 def libVersion = 1
 def libVersionMajor = 1
-def libVersionMinor = 5
-def libBuildCount = 6
+def libVersionMinor = 6
+def libBuildCount = 7
 
 def libVersionName = "${libVersion}.${libVersionMajor}.${libVersionMinor}"
 
@@ -37,7 +37,7 @@ buildscript {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 15
@@ -62,6 +62,7 @@ dependencies {
     })
     testCompile 'junit:junit:4.12'
 
+    compile "com.google.guava:guava:20.0"
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:cardview-v7:24.2.1'
 }

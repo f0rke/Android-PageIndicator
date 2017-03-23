@@ -6,17 +6,28 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by moritzkochig on 07.09.16.
  *
  * @author f0rke
  */
 public abstract class CircularPagerAdapter<Item> extends FragmentStatePagerAdapter {
-    private List<Item> mItems;
+    protected List<Item> mItems;
 
     public CircularPagerAdapter(final FragmentManager fragmentManager, final List<Item> items) {
         super(fragmentManager);
         mItems = items;
+    }
+
+    public void replaceData(List<Item> items) {
+        setList(items);
+        notifyDataSetChanged();
+    }
+
+    protected void setList(List<Item> items) {
+        mItems = checkNotNull(items);
     }
 
     protected abstract Fragment getFragmentForItem(final Item item, int index);

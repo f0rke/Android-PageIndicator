@@ -25,6 +25,10 @@ import de.f0rke.pageindicator.PageIndicator;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private ViewPager pager;
+    private List<SampleContentContainer> contentList;
+    private PageIndicator indicator;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,14 +54,29 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        ViewPager pager = (ViewPager) findViewById(R.id.pager);
-        List<SampleContentContainer> contentList = new ArrayList<SampleContentContainer>() {{
+        pager = (ViewPager) findViewById(R.id.pager);
+        indicator = (PageIndicator) findViewById(R.id.indicator);
+
+        contentList = new ArrayList<SampleContentContainer>() {{
             add(new SampleContentContainer("Page One"));
             add(new SampleContentContainer("Page Two"));
             add(new SampleContentContainer("Page Three"));
         }};
+
+        setupPager();
+//        setupPagerCircular();
+    }
+
+    private void setupPager() {
         SamplePageAdapter adapter = new SamplePageAdapter(getSupportFragmentManager(), contentList);
-        PageIndicator indicator = (PageIndicator) findViewById(R.id.indicator);
+        pager.setAdapter(adapter);
+        pager.setPageTransformer(false, indicator);
+        pager.setCurrentItem(2);
+        indicator.setupWithViewPager(pager, PageIndicator.Theme.LIGHT, null);
+    }
+
+    private void setupPagerCircular() {
+        SampleCircularPageAdapter adapter = new SampleCircularPageAdapter(getSupportFragmentManager(), contentList);
         pager.setAdapter(adapter);
         pager.setPageTransformer(false, indicator);
         indicator.setupWithCircularViewPager(pager, PageIndicator.Theme.LIGHT, null, adapter);

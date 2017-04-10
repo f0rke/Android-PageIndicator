@@ -794,11 +794,12 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
                 for (int i = 0; i < getChildCount(); i++) {
                     ViewGroup indicator = (ViewGroup) getChildAt(i);
                     boolean active = position == (int) indicator.getTag(R.id.POSITION);
+                    boolean hasIcon = iconProvider.getActiveIcon(position) != null || iconProvider.getInactiveIcon(position) != null;
 
                     setupIndicator(indicator,
                             active ? colorProvider.getActiveColor(i) : colorProvider.getInactiveColor(i),
                             active ? iconProvider.getActiveIcon(i) : iconProvider.getInactiveIcon(i),
-                            128);
+                            hasIcon ? iconProvider.getIconSize() : dotSize);
 
                     CardView dot = (CardView) indicator.findViewById(R.id.indicator_dot_8dp);
                     dot.setCardBackgroundColor(active ? colorProvider.getActiveColor(i) : colorProvider.getInactiveColor(i));

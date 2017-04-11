@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 def libVersion = 1
 def libVersionMajor = 1
-def libVersionMinor = 6
-def libBuildCount = 7
+def libVersionMinor = 7
+def libBuildCount = 8
 
 def libVersionName = "${libVersion}.${libVersionMajor}.${libVersionMinor}"
 

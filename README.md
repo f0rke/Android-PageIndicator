@@ -1,4 +1,4 @@
-# Android-PageIndicator (under construction)
+# Android-PageIndicator
 ##Synopsis
 A library providing a PageIndicator View for ViewPager on Android. The Basic features are
 - Dot views or Icons per Indicator. Can be mixed for example to show an icon for the current displayed pager page and dots for the other pages.
@@ -57,7 +57,7 @@ pager.setPageTransformer(false, indicator);
 indicator.setupWithCircularViewPager(pager, PageIndicator.Theme.LIGHT, null, adapter);
 ```
 
-With a Adapter implemetation at least looking somewhat like this
+With an Adapter implemetation at least looking somewhat like this
 ```java
 public class SamplePageAdapter extends CircularPagerAdapter<SampleContentContainer> {
     public SamplePageAdapter(FragmentManager fragmentManager, List<SampleContentContainer> contentContainers) {
@@ -70,7 +70,15 @@ public class SamplePageAdapter extends CircularPagerAdapter<SampleContentContain
     }
 }
 ```
-
+#### Autoplay
+To enable automatically swiping the pages of the `ViewPager` you additionally need to initialize and start it after `setupWithCircularViewPager` like this
+```java
+    indicator.setAutoPlayLogLevel(PageIndicator.AutoPlayLogLevel.LOW); //For logging basic events in LogCat
+    long interval = 3000; //Milliseconds
+    boolean directionForward = true;
+    indicator.initializeAutoPlay(interval, directionForward);
+    indicator.startAutoPlay();
+```
 
 ## Motivation
 

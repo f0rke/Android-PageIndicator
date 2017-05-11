@@ -178,7 +178,12 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         for (int i = 0; i < itemCount; i++) {
 
             // Setup indicator viewgroup (icon and dot)
-            ViewGroup indicator = (ViewGroup) inflater.inflate(R.layout.single_indicator_horizontal, this, false);
+            int layout =
+                    getOrientation() == HORIZONTAL ?
+                            R.layout.single_indicator_horizontal
+                            : R.layout.single_indicator_vertical;
+
+            ViewGroup indicator = (ViewGroup) inflater.inflate(layout, this, false);
 
             // Link indicator with page index
             indicator.setTag(R.id.POSITION, i);

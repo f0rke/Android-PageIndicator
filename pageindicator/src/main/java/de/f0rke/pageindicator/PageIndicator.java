@@ -170,11 +170,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         // Determine how many pages need an indicator
+        if (viewPager.getAdapter() == null) {
+            Log.e(TAG, "No adapter attached to ViewPager: skipping Layout");
+            return;
+        }
         int itemCount = viewPager.getAdapter().getCount();
         for (int i = 0; i < itemCount; i++) {
 
             // Setup indicator viewgroup (icon and dot)
-            ViewGroup indicator = (ViewGroup) inflater.inflate(R.layout.single_indicator, this, false);
+            ViewGroup indicator = (ViewGroup) inflater.inflate(R.layout.single_indicator_horizontal, this, false);
 
             // Link indicator with page index
             indicator.setTag(R.id.POSITION, i);
@@ -331,9 +335,15 @@ public class PageIndicator extends LinearLayout implements ViewPager.PageTransfo
         if (iconProvider != null) {
             Integer expandedIconSize = iconProvider.getIconSize();
             if (expandedIconSize != null) {
-                int height;
-                height = (int) (expandedIconSize * getDensity() + this.getPaddingBottom() + this.getPaddingTop());
-                setMeasuredDimension(widthMeasureSpec, height);
+                if (this.getOrientation() == HORIZONTAL) {
+                    int height;
+                    height = (int) (expandedIconSize * getDensity() + this.getPaddingBottom() + this.getPaddingTop());
+                    setMeasuredDimension(widthMeasureSpec, height);
+                } else {
+                    int width;
+                    width = (int) (expandedIconSize * getDensity() + this.getPaddingLeft() + this.getPaddingRight());
+                    setMeasuredDimension(width, heightMeasureSpec);
+                }
             }
         }
     }
